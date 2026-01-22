@@ -1,0 +1,32 @@
+{
+  "titles": [
+    {"id": "ext-1001", "title": "Content Summarization Assistant"},
+    {"id": "ext-1002", "title": "Code Review Helper"},
+    {"id": "ext-1003", "title": "Marketing Brief Generator"}
+  ],
+  "roles": [
+    "Expert AI Assistant",
+    "Senior Technical Writer",
+    "Product Manager"
+  ],
+  "tasks": [
+    "Summarize long-form content into concise bullet points",
+    "Perform a security review of the codebase",
+    "Generate a product requirements brief"
+  ],
+  "contexts": [
+    "Research paper on renewable energy",
+    "Internal engineering design document",
+    "Marketing campaign outline"
+  ],
+  "constraints": [
+    "Keep responses under 200 words",
+    "Use plain language suitable for executives",
+    "Cite sources when available"
+  ],
+  "examples": [
+    "Input: 5000-word research paper → Output: 150-word summary with 3 key findings",
+    "Input: Bug report → Output: Repro steps and suggested fix",
+    "Input: Product spec → Output: Executive summary and action items"
+  ]
+}
