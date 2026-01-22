@@ -674,28 +674,54 @@
 
         <div class="form-group">
             <label class="label">Title</label>
-            <input type="text" class="input" id="title" placeholder="Enter prompt title">
+            <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
+                <select class="input" id="titleSelect">
+                    <option value="custom">Free text (enter below)</option>
+                </select>
+                <input type="text" class="input" id="title" placeholder="Enter prompt title">
+            </div>
         </div>
 
         <div class="form-group">
             <label class="label">Role</label>
-            <input type="text" class="input" id="role" placeholder="e.g., Expert AI Assistant">
+            <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
+                <select class="input" id="roleSelect">
+                    <option value="custom">Free text (enter below)</option>
+                </select>
+                <input type="text" class="input" id="role" placeholder="e.g., Expert AI Assistant">
+            </div>
         </div>
 
         <div class="form-group">
             <label class="label">Task</label>
-            <textarea class="input" id="task" placeholder="Describe the main task"></textarea>
+            <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
+                <select class="input" id="taskSelect">
+                    <option value="custom">Free text (enter below)</option>
+                </select>
+                <textarea class="input" id="task" placeholder="Describe the main task"></textarea>
+            </div>
         </div>
 
         <div class="form-group">
             <label class="label">Context</label>
-            <textarea class="input" id="context" placeholder="Additional context"></textarea>
+            <div style="display:flex; gap:0.5rem; align-items:flex-start;">
+                <select class="input" id="contextSelect">
+                    <option value="custom">Free text (enter below)</option>
+                </select>
+                <textarea class="input" id="context" placeholder="Additional context"></textarea>
+            </div>
         </div>
 
         <div class="form-group">
             <div class="section-header">
                 <label class="label">Constraints</label>
-                <button class="btn btn-secondary" id="addConstraint">Add</button>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <select class="input" id="constraintSelect">
+                        <option value="">Select external constraint</option>
+                    </select>
+                    <button class="btn btn-secondary" id="addConstraintFromSelect">Load</button>
+                    <button class="btn btn-secondary" id="addConstraint">Add</button>
+                </div>
             </div>
             <div id="constraintsList"></div>
         </div>
@@ -703,7 +729,13 @@
         <div class="form-group">
             <div class="section-header">
                 <label class="label">Examples</label>
-                <button class="btn btn-secondary" id="addExample">Add</button>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <select class="input" id="exampleSelect">
+                        <option value="">Select external example</option>
+                    </select>
+                    <button class="btn btn-secondary" id="addExampleFromSelect">Load</button>
+                    <button class="btn btn-secondary" id="addExample">Add</button>
+                </div>
             </div>
             <div id="examplesList"></div>
         </div>
@@ -832,6 +864,153 @@
         models: []
     };
 
+    function populateTitleSelect() {
+        const titleSelect = document.getElementById('titleSelect');
+        if (!titleSelect) return;
+        titleSelect.innerHTML = '';
+
+        // Free-text option
+        const freeOpt = document.createElement('option');
+        freeOpt.value = 'custom';
+        freeOpt.textContent = 'Free text (enter below)';
+        titleSelect.appendChild(freeOpt);
+
+        // External titles (from titles.json)
+        if (Array.isArray(state.externalTitles) && state.externalTitles.length) {
+            const group = document.createElement('optgroup');
+            group.label = 'External Titles';
+            state.externalTitles.forEach((t, i) => {
+                const opt = document.createElement('option');
+                // use a stable prefixed value so it doesn't collide with library ids
+                opt.value = `ext-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = t.title || t;
+                group.appendChild(opt);
+            });
+            titleSelect.appendChild(group);
+        }
+
+        // Saved library titles
+        if (Array.isArray(state.library) && state.library.length) {
+            const group = document.createElement('optgroup');
+            group.label = 'Saved Prompts';
+            state.library.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = String(p.id);
+                opt.textContent = p.title;
+                group.appendChild(opt);
+            });
+            titleSelect.appendChild(group);
+        }
+    }
+
+    function populateRoleSelect() {
+        const sel = document.getElementById('roleSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="custom">Free text (enter below)</option>';
+        if (Array.isArray(state.externalRoles) && state.externalRoles.length) {
+            state.externalRoles.forEach((r, i) => {
+                const opt = document.createElement('option');
+                opt.value = `ext-role-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = r.title || r;
+                sel.appendChild(opt);
+            });
+        }
+    }
+
+    function populateTaskSelect() {
+        const sel = document.getElementById('taskSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="custom">Free text (enter below)</option>';
+        if (Array.isArray(state.externalTasks) && state.externalTasks.length) {
+            state.externalTasks.forEach((t, i) => {
+                const opt = document.createElement('option');
+                opt.value = `ext-task-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = t.title || t;
+                sel.appendChild(opt);
+            });
+        }
+    }
+
+    function populateContextSelect() {
+        const sel = document.getElementById('contextSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="custom">Free text (enter below)</option>';
+        if (Array.isArray(state.externalContexts) && state.externalContexts.length) {
+            state.externalContexts.forEach((c, i) => {
+                const opt = document.createElement('option');
+                opt.value = `ext-context-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = c.title || c;
+                sel.appendChild(opt);
+            });
+        }
+    }
+
+    function populateConstraintsSelect() {
+        const sel = document.getElementById('constraintSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Select external constraint</option>';
+        if (Array.isArray(state.externalConstraints) && state.externalConstraints.length) {
+            state.externalConstraints.forEach((c, i) => {
+                const opt = document.createElement('option');
+                opt.value = `ext-constraint-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = c;
+                sel.appendChild(opt);
+            });
+        }
+    }
+
+    function populateExamplesSelect() {
+        const sel = document.getElementById('exampleSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Select external example</option>';
+        if (Array.isArray(state.externalExamples) && state.externalExamples.length) {
+            state.externalExamples.forEach((e, i) => {
+                const opt = document.createElement('option');
+                opt.value = `ext-example-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = e;
+                sel.appendChild(opt);
+            });
+        }
+    }
+
+    function formatRoleForOutput(role) {
+        if (!role) return '';
+        const trimmed = String(role).trim();
+        const low = trimmed.toLowerCase();
+        if (low.startsWith('you are')) return trimmed;
+        return 'you are ' + trimmed;
+    }
+
+    async function loadExternalData(url = 'titles.json') {
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Failed to fetch external data');
+            const data = await res.json();
+
+            state.externalTitles = (data.titles || []).map(item => typeof item === 'string' ? { id: item, title: item } : item);
+            state.externalRoles = (data.roles || []).map(r => (typeof r === 'string' ? { title: r } : r));
+            state.externalTasks = (data.tasks || []).map(t => (typeof t === 'string' ? { title: t } : t));
+            state.externalContexts = (data.contexts || []).map(c => (typeof c === 'string' ? { title: c } : c));
+            state.externalConstraints = (data.constraints || []).map(c => (typeof c === 'string' ? c : (c.title || String(c))));
+            state.externalExamples = (data.examples || []).map(e => (typeof e === 'string' ? e : (e.title || String(e))));
+
+            populateTitleSelect();
+            populateRoleSelect();
+            populateTaskSelect();
+            populateContextSelect();
+            populateConstraintsSelect();
+            populateExamplesSelect();
+        } catch (e) {
+            console.warn('Could not load external data:', e);
+        }
+    }
+
     function init() {
         document.documentElement.setAttribute('data-theme', state.theme);
         document.querySelector(`[data-theme="${state.theme}"]`)?.classList.add('active');
@@ -862,6 +1041,139 @@
         document.getElementById('clearAll').addEventListener('click', clearAll);
         document.getElementById('testPrompt').addEventListener('click', testPrompt);
         document.getElementById('toggleAdvanced').addEventListener('click', toggleAdvanced);
+
+        // Title, role, task, context selects + free-text wiring
+        // load external data (async) then populate; populate as fallback
+        loadExternalData();
+        populateTitleSelect();
+        populateRoleSelect();
+        populateTaskSelect();
+        populateContextSelect();
+        populateConstraintsSelect();
+        populateExamplesSelect();
+
+        const titleSelect = document.getElementById('titleSelect');
+        const titleInput = document.getElementById('title');
+        if (titleSelect) {
+            titleSelect.addEventListener('change', (e) => {
+                const v = e.target.value;
+                if (v === 'custom') {
+                    titleInput.disabled = false;
+                    if (!titleInput.value) titleInput.value = '';
+                    titleInput.focus();
+                } else if (v && v.startsWith('ext-')) {
+                    const idx = parseInt(e.target.selectedOptions[0].dataset.extIndex, 10);
+                    const ext = state.externalTitles && state.externalTitles[idx];
+                    titleInput.disabled = true;
+                    titleInput.value = ext ? ext.title : '';
+                } else {
+                    const selected = state.library.find(p => String(p.id) === v);
+                    titleInput.disabled = true;
+                    titleInput.value = selected ? selected.title : '';
+                }
+                updatePreview();
+            });
+        }
+
+        const roleSelect = document.getElementById('roleSelect');
+        const roleInput = document.getElementById('role');
+        if (roleSelect) {
+            roleSelect.addEventListener('change', (e) => {
+                const v = e.target.value;
+                if (v === 'custom') {
+                    roleInput.disabled = false;
+                    if (!roleInput.value) roleInput.value = '';
+                    roleInput.focus();
+                } else if (v && v.startsWith('ext-role-')) {
+                    const idx = parseInt(e.target.selectedOptions[0].dataset.extIndex, 10);
+                    const ext = state.externalRoles && state.externalRoles[idx];
+                    roleInput.disabled = true;
+                    roleInput.value = ext ? (ext.title || ext) : '';
+                }
+                updatePreview();
+            });
+        }
+
+        const taskSelect = document.getElementById('taskSelect');
+        const taskInput = document.getElementById('task');
+        if (taskSelect) {
+            taskSelect.addEventListener('change', (e) => {
+                const v = e.target.value;
+                if (v === 'custom') {
+                    taskInput.disabled = false;
+                    if (!taskInput.value) taskInput.value = '';
+                    taskInput.focus();
+                } else if (v && v.startsWith('ext-task-')) {
+                    const idx = parseInt(e.target.selectedOptions[0].dataset.extIndex, 10);
+                    const ext = state.externalTasks && state.externalTasks[idx];
+                    taskInput.disabled = true;
+                    taskInput.value = ext ? (ext.title || ext) : '';
+                }
+                updatePreview();
+            });
+        }
+
+        const contextSelect = document.getElementById('contextSelect');
+        const contextInput = document.getElementById('context');
+        if (contextSelect) {
+            contextSelect.addEventListener('change', (e) => {
+                const v = e.target.value;
+                if (v === 'custom') {
+                    contextInput.disabled = false;
+                    if (!contextInput.value) contextInput.value = '';
+                    contextInput.focus();
+                } else if (v && v.startsWith('ext-context-')) {
+                    const idx = parseInt(e.target.selectedOptions[0].dataset.extIndex, 10);
+                    const ext = state.externalContexts && state.externalContexts[idx];
+                    contextInput.disabled = true;
+                    contextInput.value = ext ? (ext.title || ext) : '';
+                }
+                updatePreview();
+            });
+        }
+
+        // Add-from-select handlers for constraints/examples
+        const addConstraintFromSelectBtn = document.getElementById('addConstraintFromSelect');
+        if (addConstraintFromSelectBtn) {
+            addConstraintFromSelectBtn.addEventListener('click', () => {
+                const sel = document.getElementById('constraintSelect');
+                if (!sel) return;
+                const v = sel.value;
+                if (v && v.startsWith('ext-constraint-')) {
+                    const idx = parseInt(sel.selectedOptions[0].dataset.extIndex, 10);
+                    const text = state.externalConstraints && state.externalConstraints[idx];
+                    if (text) {
+                        const div = document.createElement('div');
+                        div.className = 'list-item';
+                        div.innerHTML = `\n                                <input type="text" class="input" value="${text}">\n                                <button class="icon-btn" onclick="this.parentElement.remove(); updatePreview()">×</button>\n                            `;
+                        div.querySelector('input').addEventListener('input', updatePreview);
+                        document.getElementById('constraintsList').appendChild(div);
+                        updatePreview();
+                    }
+                }
+            });
+        }
+
+        const addExampleFromSelectBtn = document.getElementById('addExampleFromSelect');
+        if (addExampleFromSelectBtn) {
+            addExampleFromSelectBtn.addEventListener('click', () => {
+                const sel = document.getElementById('exampleSelect');
+                if (!sel) return;
+                const v = sel.value;
+                if (v && v.startsWith('ext-example-')) {
+                    const idx = parseInt(sel.selectedOptions[0].dataset.extIndex, 10);
+                    const text = state.externalExamples && state.externalExamples[idx];
+                    if (text) {
+                        const div = document.createElement('div');
+                        div.className = 'list-item';
+                        div.innerHTML = `\n                                <input type="text" class="input" value="${text}">\n                                <button class="icon-btn" onclick="this.parentElement.remove(); updatePreview()">×</button>\n                            `;
+                        div.querySelector('input').addEventListener('input', updatePreview);
+                        document.getElementById('examplesList').appendChild(div);
+                        updatePreview();
+                    }
+                }
+            });
+        }
 
         document.getElementById('shareBtn').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -923,8 +1235,15 @@
             document.getElementById(id).addEventListener('input', updatePreview);
         });
 
+        // also ensure constraint/example add buttons exist
+        document.getElementById('addConstraintFromSelect')?.addEventListener('click', (e) => e.preventDefault());
+        document.getElementById('addExampleFromSelect')?.addEventListener('click', (e) => e.preventDefault());
+
         renderLibrary();
         updatePreview();
+
+        // Keep titleSelect in sync if library already has entries
+        populateTitleSelect();
     }
 
     function toggleAdvanced() {
@@ -1055,12 +1374,13 @@
     function updatePreview() {
         const data = getPromptData();
         const editor = document.getElementById('editor');
-
         if (state.currentEditor === 'json') {
-            editor.textContent = JSON.stringify(data, null, 2);
+            const out = Object.assign({}, data);
+            out.role = data.role ? formatRoleForOutput(data.role) : data.role;
+            editor.textContent = JSON.stringify(out, null, 2);
         } else if (state.currentEditor === 'markdown') {
             let md = `# ${data.title || 'Untitled Prompt'}\n\n`;
-            if (data.role) md += `**Role:** ${data.role}\n\n`;
+            if (data.role) md += `**Role:** ${formatRoleForOutput(data.role)}\n\n`;
             if (data.task) md += `**Task:** ${data.task}\n\n`;
             if (data.context) md += `**Context:** ${data.context}\n\n`;
             if (data.constraints.length) {
@@ -1072,7 +1392,7 @@
             editor.textContent = md;
         } else {
             let text = data.title ? `${data.title}\n\n` : '';
-            if (data.role) text += `Role: ${data.role}\n`;
+            if (data.role) text += `Role: ${formatRoleForOutput(data.role)}\n`;
             if (data.task) text += `Task: ${data.task}\n`;
             if (data.context) text += `Context: ${data.context}\n`;
             if (data.constraints.length) {
@@ -1101,6 +1421,7 @@
         state.library.unshift(prompt);
         localStorage.setItem('promptLibrary', JSON.stringify(state.library));
         renderLibrary();
+        populateTitleSelect();
 
         const result = document.getElementById('testResult');
         result.innerHTML = '<div class="success">Prompt saved to library!</div>';
@@ -1131,18 +1452,32 @@
         });
 
         updatePreview();
+        const titleSelect = document.getElementById('titleSelect');
+        if (titleSelect) {
+            titleSelect.value = String(prompt.id);
+            titleSelect.dispatchEvent(new Event('change'));
+        }
+        // ensure other selects are set to custom so inputs remain editable
+        const roleSelect = document.getElementById('roleSelect');
+        if (roleSelect) roleSelect.value = 'custom';
+        const taskSelect = document.getElementById('taskSelect');
+        if (taskSelect) taskSelect.value = 'custom';
+        const contextSelect = document.getElementById('contextSelect');
+        if (contextSelect) contextSelect.value = 'custom';
     }
 
     function deletePrompt(id) {
         state.library = state.library.filter(p => p.id !== id);
         localStorage.setItem('promptLibrary', JSON.stringify(state.library));
         renderLibrary();
+        populateTitleSelect();
     }
 
     function renderLibrary() {
         const list = document.getElementById('libraryList');
         if (state.library.length === 0) {
             list.innerHTML = '<p style="color: var(--text-tertiary); font-size: 0.875rem;">No saved prompts</p>';
+            populateTitleSelect();
             return;
         }
 
@@ -1156,6 +1491,7 @@
                     </div>
                 </div>
             `).join('');
+        populateTitleSelect();
     }
 
     function clearAll() {
@@ -1166,6 +1502,26 @@
         document.getElementById('context').value = '';
         document.getElementById('constraintsList').innerHTML = '';
         document.getElementById('examplesList').innerHTML = '';
+        const titleSelect = document.getElementById('titleSelect');
+        if (titleSelect) {
+            titleSelect.value = 'custom';
+            document.getElementById('title').disabled = false;
+        }
+        const roleSelect = document.getElementById('roleSelect');
+        if (roleSelect) {
+            roleSelect.value = 'custom';
+            document.getElementById('role').disabled = false;
+        }
+        const taskSelect = document.getElementById('taskSelect');
+        if (taskSelect) {
+            taskSelect.value = 'custom';
+            document.getElementById('task').disabled = false;
+        }
+        const contextSelect = document.getElementById('contextSelect');
+        if (contextSelect) {
+            contextSelect.value = 'custom';
+            document.getElementById('context').disabled = false;
+        }
         updatePreview();
     }
 
@@ -1205,6 +1561,26 @@
         const result = document.getElementById('testResult');
         result.innerHTML = '<div class="success">Sample prompt loaded successfully!</div>';
         setTimeout(() => result.innerHTML = '', 3000);
+        const titleSelect = document.getElementById('titleSelect');
+        if (titleSelect) {
+            titleSelect.value = 'custom';
+            document.getElementById('title').disabled = false;
+        }
+        const roleSelect = document.getElementById('roleSelect');
+        if (roleSelect) {
+            roleSelect.value = 'custom';
+            document.getElementById('role').disabled = false;
+        }
+        const taskSelect = document.getElementById('taskSelect');
+        if (taskSelect) {
+            taskSelect.value = 'custom';
+            document.getElementById('task').disabled = false;
+        }
+        const contextSelect = document.getElementById('contextSelect');
+        if (contextSelect) {
+            contextSelect.value = 'custom';
+            document.getElementById('context').disabled = false;
+        }
     }
 
     async function testPrompt() {
@@ -1230,7 +1606,7 @@
 
         const data = getPromptData();
         let promptText = '';
-        if (data.role) promptText += `Role: ${data.role}\n`;
+        if (data.role) promptText += `Role: ${formatRoleForOutput(data.role)}\n`;
         if (data.task) promptText += `Task: ${data.task}\n`;
         if (data.context) promptText += `Context: ${data.context}\n`;
         if (data.constraints.length) {
