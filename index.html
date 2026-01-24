@@ -704,7 +704,7 @@
 
         <div class="form-group">
             <label class="label">Context</label>
-            <div style="display:flex; gap:0.5rem; align-items:flex-start;">
+            <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
                 <select class="input" id="contextSelect">
                     <option value="custom">Free text (enter below)</option>
                 </select>
@@ -713,28 +713,36 @@
         </div>
 
         <div class="form-group">
-            <div class="section-header">
+            <div class="section-header" style="flex-direction:column; align-items:stretch;">
                 <label class="label">Constraints</label>
-                <div style="display:flex; gap:0.5rem; align-items:center;">
-                    <select class="input" id="constraintSelect">
-                        <option value="">Select external constraint</option>
-                    </select>
-                    <button class="btn btn-secondary" id="addConstraintFromSelect">Load</button>
-                    <button class="btn btn-secondary" id="addConstraint">Add</button>
+                <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
+                        <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch; width:100%;">
+                            <select class="input" id="constraintSelect">
+                                <option value="">Select external constraint</option>
+                            </select>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-secondary" id="addConstraintFromSelect">Load</button>
+                                <button class="btn btn-secondary" id="addConstraint">Add</button>
+                            </div>
+                        </div>
                 </div>
             </div>
             <div id="constraintsList"></div>
         </div>
 
         <div class="form-group">
-            <div class="section-header">
+            <div class="section-header" style="flex-direction:column; align-items:stretch;">
                 <label class="label">Examples</label>
-                <div style="display:flex; gap:0.5rem; align-items:center;">
-                    <select class="input" id="exampleSelect">
-                        <option value="">Select external example</option>
-                    </select>
-                    <button class="btn btn-secondary" id="addExampleFromSelect">Load</button>
-                    <button class="btn btn-secondary" id="addExample">Add</button>
+                <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
+                    <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch; width:100%;">
+                        <select class="input" id="exampleSelect">
+                            <option value="">Select external example</option>
+                        </select>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-secondary" id="addExampleFromSelect">Load</button>
+                            <button class="btn btn-secondary" id="addExample">Add</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="examplesList"></div>

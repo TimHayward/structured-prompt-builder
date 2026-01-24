@@ -1,25 +1,35 @@
 {
   "titles": [
-    {"id": "ext-1001", "title": "Content Summarization Assistant"},
+    {"id": "ext-1001", "title": "Content Summarisation Assistant"},
     {"id": "ext-1002", "title": "Code Review Helper"},
     {"id": "ext-1003", "title": "Marketing Brief Generator"}
   ],
   "roles": [
-    "Expert AI Assistant",
-    "Senior Technical Writer",
-    "Product Manager"
+    "an expert content analyst and technical writer",
+    "an expert AI Assistant",
+    "a Senior Technical Writer",
+    "a Product Manager",
+    "a Project Manager",
+    "a Senior Plagiarism Analyst and Technical Editor specialized in linguistic forensics and deep semantic analysis"
   ],
   "tasks": [
-    "Summarize long-form content into concise bullet points",
+    "Summarise long-form content into concise bullet points",
     "Perform a security review of the codebase",
+    "Analyse the provided text (or attached file) to identify any content copied or derived from publicly available websites. You must execute a \"Deep Semantic Search,\" looking beyond exact string matches to detect rewritten concepts, paraphrasing, and structural similarities.",
     "Generate a product requirements brief"
   ],
   "contexts": [
+    "You are required to review a substantial technical document (Thesis / Extensive Report, approximately 2,500+ words). The goal is to perform a rigorous assessment of the text's originality against the general public web index.",
     "Research paper on renewable energy",
     "Internal engineering design document",
     "Marketing campaign outline"
   ],
   "constraints": [
+    "**Search Logic:** Use deep semantic matching to detect paraphrased content.",
+    "**Inclusion Rule:** Flag ALL matches. Do not exclude text just because it is cited or in quotes. The objective is to identify *all* non-original text regardless of attribution.",
+    "**Scope:** General Public Web Index.",
+    "**Language:** English Only.",
+    "**Privacy:** Process the full text strictly for this analysis.",
     "Keep responses under 200 words",
     "Use plain language suitable for executives",
     "Cite sources when available"
