@@ -39,4 +39,12 @@
     "Input: Bug report → Output: Repro steps and suggested fix",
     "Input: Product spec → Output: Executive summary and action items"
   ]
+  ,
+  "output_formats": [
+    "Short bullet summary",
+    "Executive summary",
+    "Tabular data (CSV)",
+    "JSON object",
+    "Detailed report (500 words)"
+  ]
 }

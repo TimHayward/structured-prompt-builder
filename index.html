@@ -731,6 +731,16 @@
         </div>
 
         <div class="form-group">
+            <label class="label">Output Format</label>
+            <div style="display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
+                <select class="input" id="outputFormatSelect">
+                    <option value="custom">Free text (enter below)</option>
+                </select>
+                <textarea class="input" id="outputFormat" placeholder="Describe the desired output format"></textarea>
+            </div>
+        </div>
+
+        <div class="form-group">
             <div class="section-header" style="flex-direction:column; align-items:stretch;">
                 <label class="label">Examples</label>
                 <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.5rem;">
@@ -764,8 +774,8 @@
         <h2 class="panel-title">Preview & Test</h2>
 
         <div class="tabs">
-            <button class="tab active" data-editor="json">JSON</button>
-            <button class="tab" data-editor="markdown">Markdown</button>
+            <button class="tab" data-editor="json">JSON</button>
+            <button class="tab active" data-editor="markdown">Markdown</button>
             <button class="tab" data-editor="text">Plain Text</button>
         </div>
 
@@ -867,7 +877,7 @@
         theme: localStorage.getItem('theme') || 'default',
         constraints: [],
         examples: [],
-        currentEditor: 'json',
+        currentEditor: 'markdown',
         library: JSON.parse(localStorage.getItem('promptLibrary') || '[]'),
         models: []
     };
@@ -957,6 +967,21 @@
         }
     }
 
+    function populateOutputFormatSelect() {
+        const sel = document.getElementById('outputFormatSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="custom">Free text (enter below)</option>';
+        if (Array.isArray(state.externalOutputFormats) && state.externalOutputFormats.length) {
+            state.externalOutputFormats.forEach((f, i) => {
+                const opt = document.createElement('option');
+                opt.value = `ext-output-${i}`;
+                opt.dataset.extIndex = String(i);
+                opt.textContent = f;
+                sel.appendChild(opt);
+            });
+        }
+    }
+
     function populateConstraintsSelect() {
         const sel = document.getElementById('constraintSelect');
         if (!sel) return;
@@ -1007,6 +1032,9 @@
             state.externalContexts = (data.contexts || []).map(c => (typeof c === 'string' ? { title: c } : c));
             state.externalConstraints = (data.constraints || []).map(c => (typeof c === 'string' ? c : (c.title || String(c))));
             state.externalExamples = (data.examples || []).map(e => (typeof e === 'string' ? e : (e.title || String(e))));
+            // optional output formats (look for several possible keys)
+            const outputFormatsSource = data.output_formats || data.outputFormats || data.formats || data.output || [];
+            state.externalOutputFormats = (outputFormatsSource || []).map(of => (typeof of === 'string' ? of : (of.title || String(of))));
 
             populateTitleSelect();
             populateRoleSelect();
@@ -1014,6 +1042,7 @@
             populateContextSelect();
             populateConstraintsSelect();
             populateExamplesSelect();
+            populateOutputFormatSelect();
         } catch (e) {
             console.warn('Could not load external data:', e);
         }
@@ -1044,6 +1073,7 @@
 
         document.getElementById('addConstraint').addEventListener('click', addConstraint);
         document.getElementById('addExample').addEventListener('click', addExample);
+        document.getElementById('outputFormatSelect')?.addEventListener('change', (e) => {});
         document.getElementById('savePrompt').addEventListener('click', savePrompt);
         document.getElementById('loadSample').addEventListener('click', loadSamplePrompt);
         document.getElementById('clearAll').addEventListener('click', clearAll);
@@ -1059,6 +1089,7 @@
         populateContextSelect();
         populateConstraintsSelect();
         populateExamplesSelect();
+        populateOutputFormatSelect();
 
         const titleSelect = document.getElementById('titleSelect');
         const titleInput = document.getElementById('title');
@@ -1135,6 +1166,25 @@
                     const ext = state.externalContexts && state.externalContexts[idx];
                     contextInput.disabled = true;
                     contextInput.value = ext ? (ext.title || ext) : '';
+                }
+                updatePreview();
+            });
+        }
+
+        const outputSelect = document.getElementById('outputFormatSelect');
+        const outputInput = document.getElementById('outputFormat');
+        if (outputSelect) {
+            outputSelect.addEventListener('change', (e) => {
+                const v = e.target.value;
+                if (v === 'custom') {
+                    outputInput.disabled = false;
+                    if (!outputInput.value) outputInput.value = '';
+                    outputInput.focus();
+                } else if (v && v.startsWith('ext-output-')) {
+                    const idx = parseInt(e.target.selectedOptions[0].dataset.extIndex, 10);
+                    const ext = state.externalOutputFormats && state.externalOutputFormats[idx];
+                    outputInput.disabled = true;
+                    outputInput.value = ext ? ext : '';
                 }
                 updatePreview();
             });
@@ -1242,6 +1292,7 @@
         ['title', 'role', 'task', 'context'].forEach(id => {
             document.getElementById(id).addEventListener('input', updatePreview);
         });
+        document.getElementById('outputFormat')?.addEventListener('input', updatePreview);
 
         // also ensure constraint/example add buttons exist
         document.getElementById('addConstraintFromSelect')?.addEventListener('click', (e) => e.preventDefault());
@@ -1374,6 +1425,7 @@
             role: document.getElementById('role').value,
             task: document.getElementById('task').value,
             context: document.getElementById('context').value,
+            outputFormat: document.getElementById('outputFormat') ? document.getElementById('outputFormat').value : '',
             constraints,
             examples
         };
@@ -1385,12 +1437,14 @@
         if (state.currentEditor === 'json') {
             const out = Object.assign({}, data);
             out.role = data.role ? formatRoleForOutput(data.role) : data.role;
+            out.outputFormat = data.outputFormat || '';
             editor.textContent = JSON.stringify(out, null, 2);
         } else if (state.currentEditor === 'markdown') {
             let md = `# ${data.title || 'Untitled Prompt'}\n\n`;
             if (data.role) md += `**Role:** ${formatRoleForOutput(data.role)}\n\n`;
             if (data.task) md += `**Task:** ${data.task}\n\n`;
             if (data.context) md += `**Context:** ${data.context}\n\n`;
+            if (data.outputFormat) md += `**Output Format:** ${data.outputFormat}\n\n`;
             if (data.constraints.length) {
                 md += `**Constraints:**\n${data.constraints.map(c => `- ${c}`).join('\n')}\n\n`;
             }
@@ -1403,6 +1457,7 @@
             if (data.role) text += `Role: ${formatRoleForOutput(data.role)}\n`;
             if (data.task) text += `Task: ${data.task}\n`;
             if (data.context) text += `Context: ${data.context}\n`;
+            if (data.outputFormat) text += `Output Format: ${data.outputFormat}\n`;
             if (data.constraints.length) {
                 text += `\nConstraints:\n${data.constraints.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n`;
             }
